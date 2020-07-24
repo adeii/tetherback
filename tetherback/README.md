@@ -114,7 +114,7 @@ List of devices attached
 ### Additional options
 
 * Extra partitions can be included with the `-X`/`--extra` and `--extra-raw`
-  options; for example, `-X product -X vendor` to backup the
+  options; for example, `-X kernel -X vendor` to backup the
   [Huawei Y7 Prime 2018 partitions](https://github.com/adeii/huawei_london_twrp/blob/omni-7.1/recovery/root/etc/recovery.fstab).
 
     * With `--extra-raw`, the extra partition will *always* be saved as a raw image, rather than as a tarball, even if it is a
