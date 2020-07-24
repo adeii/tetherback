@@ -252,8 +252,9 @@ def backup_partition(adb, pi, bp, transport, backupdir, verify=True):
         cmdline = 'tar -czC %s %s . 2> /dev/null' % (pi.mountpoint, bp.taropts or '')
     else:
         print("Saving partition %s (%s), %d MiB uncompressed..." % (pi.partname, pi.devname, pi.size/2048))
-        #if not really_umount(adb, '/dev/block/'+pi.devname, pi.mountpoint):
-         #   raise RuntimeError('%s: could not unmount %s' % (pi.partname, pi.mountpoint))
+  #      if not really_umount(adb, '/dev/block/'+pi.devname, pi.mountpoint):
+  #          raise RuntimeError('%s: could not unmount %s' % (pi.partname, pi.mountpoint))
+        print("%s could not unmount %s " % (pi.partname, pi.mountpoint))
         cmdline = 'dd if=/dev/block/%s 2> /dev/null | gzip -f' % pi.devname
 
     if verify:
