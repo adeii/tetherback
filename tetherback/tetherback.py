@@ -2,7 +2,7 @@
 #
 # Inspired by https://gist.github.com/inhies/5069663
 #
-# Currently backs up /data, /system, and /boot partitions
+# Currently backs up /data, /system, and /ramdisk partitions
 # Includes /data/media* by default, unlike TWRP (see issue #35)
 
 import subprocess as sp
@@ -59,7 +59,7 @@ def parse_args(args=None):
     g.add_argument('-U', '--no-userdata', dest='userdata', action='store_false', default=True, help="Omit /data partition from backup (implies --no-media)")
     g.add_argument('-E', '--no-media', dest='media', action='store_false', default=True, help="Omit /data/media* from TWRP backup")
     g.add_argument('-S', '--no-system', dest='system', action='store_false', default=True, help="Omit /system partition from backup")
-    g.add_argument('-B', '--no-boot', dest='boot', action='store_false', default=True, help="Omit boot partition from backup")
+    g.add_argument('-B', '--no-boot', dest='ramdisk', action='store_false', default=True, help="Omit ramdisk partition from backup")
     g.add_argument('-X', '--extra', action='append', metavar='NAME', default=[], help="Include extra partition (as a tarball if this partition is mountable and TWRP backup type is chosen, otherwise as raw image)")
     g.add_argument('--extra-raw', action='append', metavar='NAME', default=[], help="Include extra partition (always as raw image)")
     return p, p.parse_args(args)
@@ -191,7 +191,7 @@ def build_partmap(adb, mmcblks=None, fstab='/etc/fstab'):
 def plan_backup(args, partmap):
     # Build table of partitions requested for backup
     if args.nandroid:
-        rp = args.extra + args.extra_raw + [x for x in ('boot','recovery','system','userdata','cache') if getattr(args, x)]
+        rp = args.extra + args.extra_raw + [x for x in ('ramdisk','recovery','system','userdata','cache') if getattr(args, x)]
         plan = odict((p,BackupPlan('%s.emmc.gz'%p, None)) for p in rp)
     else:
         # Figure out which of the --extra partitions can't actually be mounted and exile them to --extra-raw
@@ -200,7 +200,7 @@ def plan_backup(args, partmap):
         for p in args.extra:
             (extra_mount if p in partmap and partmap[p].fstype else extra_raw).append(p)
 
-        rp = extra_raw + [x for x in ('boot','recovery') if getattr(args, x)]
+        rp = extra_raw + [x for x in ('ramdisk','recovery') if getattr(args, x)]
         plan = odict((p,BackupPlan('%s.emmc.win'%p, None)) for p in rp)
         mp = extra_mount + [x for x in ('cache','system') if getattr(args, x)]
         plan.update((p,BackupPlan('%s.%s.win'%(p, partmap[p].fstype), '-p')) for p in mp)
@@ -253,7 +253,8 @@ def backup_partition(adb, pi, bp, transport, backupdir, verify=True):
     else:
         print("Saving partition %s (%s), %d MiB uncompressed..." % (pi.partname, pi.devname, pi.size/2048))
         if not really_umount(adb, '/dev/block/'+pi.devname, pi.mountpoint):
-            raise RuntimeError('%s: could not unmount %s' % (pi.partname, pi.mountpoint))
+         #   raise RuntimeError('%s: could not unmount %s' % (pi.partname, pi.mountpoint))
+        print(" %s: could not unmount %s" % (pi.partname, pi.mountpoint))
         cmdline = 'dd if=/dev/block/%s 2> /dev/null | gzip -f' % pi.devname
 
     if verify:
@@ -342,7 +343,7 @@ def main(args=None):
     if args.dry_run or missing or args.verbose > 0:
         show_partmap_and_plan(partmap, plan)
 
-    if missing & {'cache','system','data','boot'}:
+    if missing & {'cache','system','data','ramdisk'}:
         p.error("Standard partitions were requested for backup, but not found in the partition map: %s\n%s" % (', '.join(missing), please_report))
     elif missing:
         p.error("These non-standard partitions were requested for backup, but not found in the partition map: %s" % ', '.join(missing))
