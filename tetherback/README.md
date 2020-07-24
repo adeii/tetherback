@@ -10,22 +10,12 @@ the device and then verifies that they match on the host.
 **WARNING:** This is a work in progress. I have personally tested it on the
 following device/recovery/host combinations…
 
-| Device | Codename | TWRP recovery | `adb` | Host OS | Comments |
-|--------|----------|---------------|-------|---------|----------|
-| [LG/Google Nexus 5](http://wikipedia.org/wiki/Nexus_5) | hammerhead | [v2.8.5-0](http://teamw.in/site/update/2015/02/12/twrp-2.8.5.0-released.html) | v1.0.32 | Ubuntu amd64 |**`adb exec-out` does not work** |
-| [LG/Google Nexus 5](http://wikipedia.org/wiki/Nexus_5) | hammerhead | [v3.0.0-0](https://twrp.me/site/update/2016/02/05/twrp-3.0.0-0-released.html) | v1.0.31 | Ubuntu amd64 | working |
-| [LG/Google Nexus 5](http://wikipedia.org/wiki/Nexus_5) | hammerhead | [v3.0.0-0](https://twrp.me/site/update/2016/02/05/twrp-3.0.0-0-released.html) | v1.0.32 | Ubuntu amd64 | working |
-| [LG/Google Nexus 5](http://wikipedia.org/wiki/Nexus_5) | hammerhead | [v3.0.2-0](https://twrp.me/site/update/2016/04/05/twrp-3.0.2-0-released.html) | v1.0.32 | Ubuntu amd64 | working |
-| [Samsung Galaxy S4](https://en.wikipedia.org/wiki/Samsung_Galaxy_S4) L720T | jfltespr | [v3.0.2-0](https://twrp.me/site/update/2016/04/05/twrp-3.0.2-0-released.html) | v1.0.32 | Ubuntu amd64 | working |
-| [Moto G4 Play](https://en.wikipedia.org/wiki/Moto_G4) | harpia | [v3.0.2-r5](https://twrp.me/site/update/2016/04/05/twrp-3.0.2-0-released.html) | v1.0.32 | Ubuntu amd64 | working |
-
 Other users have reported success—and
 [issues](https://github.com/dlenski/tetherback/issues?q=is%3Aissue+is%3Aclosed)
-☺—with other devices, including
-[`picassowifi`](https://wiki.cyanogenmod.org/w/Picassowifi_Info),
-[`cancro`](https://wiki.cyanogenmod.org/w/Cancro_Info),
-[`Z00T`](https://wiki.cyanogenmod.org/w/Z00T_Info); and other operating
+and other operating
 systems, various versions of Windows and Mac OS X.
+
+My target is Huawei / Honor LDN-Lxx devices and modded/workaround are done for them. Should works for all others Oreo devices too.
 
 ## Requirements and installation
 
@@ -39,47 +29,62 @@ Install with `pip3` to automatically fetch Python dependencies. (Note that on mo
 the Python 2.x version, while `pip3` invokes the Python 3.x version.)
 
 ```
+# Install Python3 (this is Windows installation) from https://www.python.org/downloads/windows/
+# or for Linux https://www.python.org/downloads/source/
+
 # Install latest development version
 $ pip3 install https://github.com/dlenski/tetherback/archive/HEAD.zip
 
 # Install a tagged release
-# (replace "RELEASE" with one of the tag/release version numbers on the "Releases" page)
-$ pip3 install https://github.com/dlenski/tetherback/archive/RELEASE.zip
+# (replace "0.9.1" with newer of the tag/release version numbers on the "Releases" page,if there is any.)
+$ pip3 install https://github.com/dlenski/tetherback/archive/0.9.1.zip
 ```
 
 ## Usage
 
 Boot your device into TWRP recovery and connect it via USB. Ensure that it's visible to `adb`:
+If you use Windows, open cmd instead of bash and ignore all $ from commands.
 
-```bash
+```bash 
 $ adb devices
 List of devices attached
 0123deadbeaf5f5f	recovery
 ```
 
 * Make a TWRP-style backup over ADB. This saves a gzipped image of the
-  `boot` partition as `boot.emmc.win`, and saves the *contents* of the
-  `/system` and `/data` partitions as tarballs named `system.ext4.win`
-  and `data.ext4.win`:
+  `ramdisk` partition as `ramdisk.emmc.win`,
+   and saves the *contents* of the
+  `/system` and `/data` partitions as tarballs named
+  `system.ext4.win` and `data.ext4.win`:
+  
+* WORKAROUND - tetherback can not unmount "ramdisk" partition on its own, stops with failure at begining of back up.
+               So, that line is bypassed and you had manually unmount ALL partitions in TWRP -> Mount field.
 
     ```bash
     $ tetherback
-    tetherback v0.8
-    Found ADB version 1.0.32
+    tetherback v0.9.1
+    Found ADB version 1.0.36
     Using default transfer method: adb exec-out pipe (--exec-out)
-    Device reports kernel 3.4.0-bricked-hammerhead-twrp-g7b77eb4
-    Device reports TWRP version 3.0.0-0
-    Reading partition map for mmcblk0 (29 partitions)...
-      partition map: 100%
+    Device reports kernel 3.18.66-gc555e98-dirty
+    Device reports TWRP version 3.3.1-0
+    Reading partition map for mmcblk0 (55 partitions)...
+    partition map: 100%
     Reading partition map for mmcblk0rpmb (0 partitions)...
-      partition map: 100%
-    Saving backup images in ./twrp-backup-2016-07-03--14-53-29/ ...
-    Saving partition boot (mmcblk0p19), 22 MiB uncompressed...
-      boot.emmc.win: 100%   4.0 MiB/s  16.3 MiB
-    Saving tarball of mmcblk0p25 (mounted at /system), 1024 MiB uncompressed...
-      system.ext4.win: 100%   2.5 MiB/s 299.7 MiB
-    Saving tarball of mmcblk0p28 (mounted at /data), 13089 MiB uncompressed...
-      data.ext4.win: 100%   2.0 MiB/s 804.0 MiB
+    partition map: 100%
+    Reading partition map for mmcblk1 (1 partitions)...
+    partition map: N/A%
+    NG: partition mmcblk1p1 has no PARTNAME in its uevent file
+    Please report this issue at https://github.com/dlenski/tetherback/issues
+    Please post the entire output from tetherback!
+    partition map: 100%
+    Saving backup images in .\twrp-backup-2020-07-24--10-09-48/ ...
+    Saving partition ramdisk (mmcblk0p42), 16 MiB uncompressed...
+    ramdisk.emmc.win: 100%  11.3 MiB/s  11.2 MiB
+    Saving tarball of mmcblk0p54 (mounted at /system), 2624 MiB uncompressed...
+    system.ext4.win: 100%  10.4 MiB/s   1.1 GiB
+    Saving tarball of mmcblk0p55 (mounted at /data), 25403 MiB uncompressed...
+    data.ext4.win: 100%  10.6 MiB/s   7.8 GiB
+    Backup complete.
     ```
 
 * Make a "nandroid"-style backup over ADB. This saves gzipped images
@@ -109,11 +114,13 @@ List of devices attached
 ### Additional options
 
 * Extra partitions can be included with the `-X`/`--extra` and `--extra-raw`
-  options; for example, `-X modemst1 -X modemst2` to backup the
-  [Nexus 5 EFS partitions](http://forum.xda-developers.com/google-nexus-5/development/modem-nexus-5-flashable-modems-efs-t2514095).
+  options; for example, `-X product -X vendor` to backup the
+  [Huawei Y7 Prime 2018 partitions](https://github.com/adeii/huawei_london_twrp/blob/omni-7.1/recovery/root/etc/recovery.fstab).
 
     * With `--extra-raw`, the extra partition will *always* be saved as a raw image, rather than as a tarball, even if it is a
-      mountable filesystem and tetherback is run in TWRP backup mode.
+      mountable filesystem and tetherback is run in TWRP backup mode. <--- Use this if you still has encrypted /data and internal SD! Like: 
+      
+          tetherback -U --extra-raw data --extra-raw media
 
 * The partition map and backup plan will be printed with
   `-v`/`--verbose` (or use `-0`/`--dry-run` to **only** print it, and
